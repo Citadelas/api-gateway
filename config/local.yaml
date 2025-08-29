@@ -1,4 +1,5 @@
 env: "local"
+addr: "localhost:44032"
 services:
   sso:
     endpoint: "localhost:44043"

@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	Addr     string   `yaml:"addr"`
 	Env      string   `yaml:"env" env-default:"local"`
 	Services Services `yaml:"services"`
 }
@@ -19,7 +20,7 @@ type Services struct {
 
 type Service struct {
 	Endpoint string        `yaml:"endpoint"`
-	timeout  time.Duration `yaml:"timeout"`
+	Timeout  time.Duration `yaml:"timeout"`
 }
 
 type GRPCConfig struct {
