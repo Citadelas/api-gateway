@@ -1,1 +1,5 @@
 .idea
+config/local.yaml
+/storage/*
+!/internal/storage/
+!/internal/storage/**
