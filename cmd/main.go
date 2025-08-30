@@ -38,6 +38,10 @@ func main() {
 	r := gin.Default()
 	api := r.Group("/api/v1")
 	api.POST("/auth/login", sso.LoginHandler(ssoClient))
+	api.POST("/auth/register", sso.RegisterHandler(ssoClient))
+	api.POST("/auth/refresh", sso.RefreshToken(ssoClient))
+	api.POST("/auth/isadmin", sso.IsAdmin(ssoClient))
+
 	err := r.Run(cfg.Addr)
 	if err != nil {
 		log.Fatalf(err.Error())
