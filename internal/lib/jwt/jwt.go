@@ -13,7 +13,7 @@ import (
 )
 
 type CustomClaims struct {
-	UserID uint64 `json:"user_id"`
+	UserID uint64 `json:"uid"`
 	Email  string `json:"email"`
 	AppID  int32  `json:"app_id"`
 	jwt.RegisteredClaims
@@ -24,7 +24,7 @@ func ExtractToken(authHeader string) string {
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		return ""
 	}
-	return parts[2]
+	return parts[1]
 }
 
 func ValidateToken(ctx context.Context, ssoClient ssov1.AuthClient, tokenString string) (uint64, error) {

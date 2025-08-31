@@ -4,19 +4,8 @@ import (
 	"github.com/Citadelas/api-gateway/internal/helpers/grpc"
 	ssov1 "github.com/Citadelas/protos/golang/sso"
 	"github.com/gin-gonic/gin"
-	"google.golang.org/grpc/status"
 	"log/slog"
 )
-
-func HandleGRPCError(c *gin.Context, err error) {
-	st := status.Convert(err)
-	httpStatus := grpc.GRPCToHTTPStatus(st.Code())
-
-	c.JSON(httpStatus, gin.H{
-		"error": st.Message(),
-		"code":  st.Code().String(),
-	})
-}
 
 type Req struct {
 	Email    string `json:"email"`
@@ -37,7 +26,7 @@ func LoginHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.Login(c, &grpcReq)
 		if err != nil {
-			HandleGRPCError(c, err)
+			grpc.HandleGRPCError(c, err)
 			return
 		}
 		c.JSON(200, resp)
@@ -57,7 +46,7 @@ func RegisterHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc 
 		}
 		resp, err := client.Register(c, &grpcReq)
 		if err != nil {
-			HandleGRPCError(c, err)
+			grpc.HandleGRPCError(c, err)
 			return
 		}
 		c.JSON(200, resp)
@@ -81,7 +70,7 @@ func RefreshToken(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.RefreshToken(c, &grpcReq)
 		if err != nil {
-			HandleGRPCError(c, err)
+			grpc.HandleGRPCError(c, err)
 			return
 		}
 		c.JSON(200, resp)
@@ -104,7 +93,7 @@ func IsAdmin(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.IsAdmin(c, &grpcReq)
 		if err != nil {
-			HandleGRPCError(c, err)
+			grpc.HandleGRPCError(c, err)
 			return
 		}
 		c.JSON(200, resp.GetIsAdmin())

@@ -3,7 +3,10 @@ package main
 import (
 	"github.com/Citadelas/api-gateway/internal/config"
 	"github.com/Citadelas/api-gateway/internal/handlers/sso"
+	"github.com/Citadelas/api-gateway/internal/handlers/task"
+	"github.com/Citadelas/api-gateway/internal/middleware"
 	ssov1 "github.com/Citadelas/protos/golang/sso"
+	taskv1 "github.com/Citadelas/protos/golang/task"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,7 +36,7 @@ func main() {
 
 	taskConn := mustGenerateClient(cfg.Services.Task.Endpoint, cfg.Services.Task.Timeout)
 	defer ssoConn.Close()
-	taskClient := ssov1.NewAuthClient(taskConn)
+	taskClient := taskv1.NewTaskServiceClient(taskConn)
 	_ = taskClient
 
 	r := gin.Default()
@@ -42,6 +45,14 @@ func main() {
 	api.POST("/auth/register", sso.RegisterHandler(log, ssoClient))
 	api.POST("/auth/refresh", sso.RefreshToken(log, ssoClient))
 	api.POST("/auth/isadmin", sso.IsAdmin(log, ssoClient))
+
+	protected := api.Group("/")
+	protected.Use(middleware.AuthMiddleware(ssoClient))
+	protected.POST("/tasks", task.CreateTaskHandler(log, taskClient))
+	//protected.GET("/tasks/:id", task.GetTaskHandler(taskClient))
+	//protected.PUT("/tasks/:id", task.UpdateTaskHandler(taskClient))
+	//protected.DELETE("/tasks/:id", task.DeleteTaskHandler(taskClient))
+	//protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(taskClient))
 
 	err := r.Run(cfg.Addr)
 	if err != nil {

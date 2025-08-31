@@ -1,9 +1,21 @@
 package grpc
 
 import (
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
+
+func HandleGRPCError(c *gin.Context, err error) {
+	st := status.Convert(err)
+	httpStatus := GRPCToHTTPStatus(st.Code())
+
+	c.JSON(httpStatus, gin.H{
+		"error": st.Message(),
+		"code":  st.Code().String(),
+	})
+}
 
 func GRPCToHTTPStatus(grpcCode codes.Code) int {
 	switch grpcCode {

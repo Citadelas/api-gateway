@@ -5,5 +5,5 @@ services:
     endpoint: "localhost:44043"
     timeout: "5s"
   task:
-    endpoint: "localhost:44044"
+    endpoint: "localhost:44045"
     timeout: "5s"
