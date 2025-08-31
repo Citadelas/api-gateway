@@ -49,7 +49,7 @@ func main() {
 	protected := api.Group("/")
 	protected.Use(middleware.AuthMiddleware(ssoClient))
 	protected.POST("/tasks", task.CreateTaskHandler(log, taskClient))
-	//protected.GET("/tasks/:id", task.GetTaskHandler(taskClient))
+	protected.GET("/tasks/:id", task.GetTaskHandler(log, taskClient))
 	//protected.PUT("/tasks/:id", task.UpdateTaskHandler(taskClient))
 	//protected.DELETE("/tasks/:id", task.DeleteTaskHandler(taskClient))
 	//protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(taskClient))
