@@ -2,6 +2,7 @@ package task
 
 import (
 	"github.com/Citadelas/api-gateway/internal/helpers/grpc"
+	"github.com/Citadelas/api-gateway/internal/lib/logger/sl"
 	taskv1 "github.com/Citadelas/protos/golang/task"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,12 +23,12 @@ type Task struct {
 }
 
 func CreateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	const op = "handlers.task.Create"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
-		const op = "handlers.task.Create"
 		var req Task
 		uid, _ := c.Get("userID")
 		c.ShouldBind(&req)
-		log.Info("aa", req)
 		grpcReq := taskv1.CreateTaskRequest{
 			UserId:      uid.(uint64),
 			Title:       req.Title,
@@ -37,16 +38,19 @@ func CreateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Ha
 		}
 		resp, err := client.CreateTask(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc create task request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("Task created successfully")
 		c.JSON(200, resp)
 	}
 }
 
 func UpdateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	const op = "handlers.task.Update"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
-		const op = "handlers.task.Update"
 		var req Task
 		uid, _ := c.Get("userID")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -65,16 +69,19 @@ func UpdateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Ha
 		}
 		resp, err := client.UpdateTask(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc update task request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("Task updated successfully")
 		c.JSON(200, resp)
 	}
 }
 
 func GetTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	const op = "handlers.task.Get"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
-		const op = "handlers.task.Get"
 		uid, _ := c.Get("userID")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -87,16 +94,19 @@ func GetTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Handl
 		}
 		resp, err := client.GetTask(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc get task request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("Task get successfully")
 		c.JSON(200, resp)
 	}
 }
 
 func DeleteTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	const op = "handlers.task.Delete"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
-		const op = "handlers.task.Delete"
 		uid, _ := c.Get("userID")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -109,9 +119,11 @@ func DeleteTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Ha
 		}
 		resp, err := client.DeleteTask(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc delete task request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("Task deleted successfully")
 		c.JSON(200, resp)
 	}
 }
@@ -121,8 +133,9 @@ type UpdateStatusReq struct {
 }
 
 func UpdateStatusHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	const op = "handlers.task.UpdateStatus"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
-		const op = "handlers.task.UpdateStatus"
 		var req UpdateStatusReq
 		if err := c.ShouldBind(&req); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
@@ -141,9 +154,11 @@ func UpdateStatusHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.
 		}
 		resp, err := client.UpdateStatus(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc update task status request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("Task status updated successfully")
 		c.JSON(200, resp)
 	}
 }

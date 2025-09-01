@@ -2,6 +2,7 @@ package sso
 
 import (
 	"github.com/Citadelas/api-gateway/internal/helpers/grpc"
+	"github.com/Citadelas/api-gateway/internal/lib/logger/sl"
 	ssov1 "github.com/Citadelas/protos/golang/sso"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -14,9 +15,11 @@ type Req struct {
 
 func LoginHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 	const op = "handlers.sso.Login"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
 		var req Req
 		if err := c.ShouldBind(&req); err != nil {
+			log.Error("Error json bind", sl.Err(err))
 			c.JSON(400, gin.H{"error": "invalid request"})
 		}
 		grpcReq := ssov1.LoginRequest{
@@ -26,19 +29,24 @@ func LoginHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.Login(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc login request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("User login successfully")
 		c.JSON(200, resp)
 	}
 }
 
 func RegisterHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 	const op = "handlers.sso.Register"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
 		var req Req
 		if err := c.ShouldBind(&req); err != nil {
+			log.Error("Error json bind", sl.Err(err))
 			c.JSON(400, gin.H{"error": "invalid request"})
+			return
 		}
 		grpcReq := ssov1.RegisterRequest{
 			Email:    req.Email,
@@ -46,9 +54,11 @@ func RegisterHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc 
 		}
 		resp, err := client.Register(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc register request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("User registered successfully")
 		c.JSON(200, resp)
 	}
 }
@@ -59,9 +69,11 @@ type refReq struct {
 
 func RefreshToken(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 	const op = "handlers.sso.Refresh"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
 		var req refReq
 		if err := c.ShouldBind(&req); err != nil {
+			log.Error("Error json bind", sl.Err(err))
 			c.JSON(400, gin.H{"error": "invalid request"})
 		}
 		grpcReq := ssov1.RefreshTokenRequest{
@@ -70,9 +82,11 @@ func RefreshToken(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.RefreshToken(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc refresh token request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}
+		log.Info("User refreshed token successfully")
 		c.JSON(200, resp)
 	}
 }
@@ -82,10 +96,12 @@ type adminReq struct {
 }
 
 func IsAdmin(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
-	const op = "handlers.sso.Login"
+	const op = "handlers.sso.IsAdmin"
+	log = log.With("op", op)
 	return func(c *gin.Context) {
 		var req adminReq
 		if err := c.ShouldBind(&req); err != nil {
+			log.Error("Error json bind", sl.Err(err))
 			c.JSON(400, gin.H{"error": "invalid request"})
 		}
 		grpcReq := ssov1.IsAdminRequest{
@@ -93,6 +109,7 @@ func IsAdmin(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 		}
 		resp, err := client.IsAdmin(c, &grpcReq)
 		if err != nil {
+			log.Error("Error making grpc is admin request", sl.Err(err))
 			grpc.HandleGRPCError(c, err)
 			return
 		}

@@ -24,9 +24,9 @@ const (
 //TODO:
 // Implement logger
 // Better grpc error handling
-// Add all the handlers
 // Write validate token function in sso
 // Refactor server initialization
+// Fix bug with priority not delivers
 
 func main() {
 	cfg := config.MustLoad()
