@@ -58,7 +58,7 @@ func main() {
 	protected.POST("/tasks", task.CreateTaskHandler(log, taskClient))
 	protected.GET("/tasks/:id", task.GetTaskHandler(log, taskClient))
 	protected.PUT("/tasks/:id", task.UpdateTaskHandler(log, taskClient))
-	//protected.DELETE("/tasks/:id", task.DeleteTaskHandler(taskClient))
+	protected.DELETE("/tasks/:id", task.DeleteTaskHandler(log, taskClient))
 	//protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(taskClient))
 
 	err := r.Run(cfg.Addr)

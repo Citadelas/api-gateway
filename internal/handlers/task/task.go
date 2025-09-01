@@ -93,3 +93,25 @@ func GetTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Handl
 		c.JSON(200, resp)
 	}
 }
+
+func DeleteTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		const op = "handlers.task.Update"
+		uid, _ := c.Get("userID")
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid id"})
+			return
+		}
+		grpcReq := taskv1.DeleteTaskRequest{
+			Id:     id,
+			UserId: uid.(uint64),
+		}
+		resp, err := client.DeleteTask(c, &grpcReq)
+		if err != nil {
+			grpc.HandleGRPCError(c, err)
+			return
+		}
+		c.JSON(200, resp)
+	}
+}
