@@ -96,7 +96,7 @@ func GetTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Handl
 
 func DeleteTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		const op = "handlers.task.Update"
+		const op = "handlers.task.Delete"
 		uid, _ := c.Get("userID")
 		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 		if err != nil {
@@ -108,6 +108,38 @@ func DeleteTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Ha
 			UserId: uid.(uint64),
 		}
 		resp, err := client.DeleteTask(c, &grpcReq)
+		if err != nil {
+			grpc.HandleGRPCError(c, err)
+			return
+		}
+		c.JSON(200, resp)
+	}
+}
+
+type UpdateStatusReq struct {
+	Status string `json:"status"`
+}
+
+func UpdateStatusHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		const op = "handlers.task.UpdateStatus"
+		var req UpdateStatusReq
+		if err := c.ShouldBind(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		uid, _ := c.Get("userID")
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid id"})
+			return
+		}
+		grpcReq := taskv1.UpdateStatusRequest{
+			Id:     id,
+			UserId: uid.(uint64),
+			Status: taskv1.TaskStatus(taskv1.TaskStatus_value[req.Status]),
+		}
+		resp, err := client.UpdateStatus(c, &grpcReq)
 		if err != nil {
 			grpc.HandleGRPCError(c, err)
 			return

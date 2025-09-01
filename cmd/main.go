@@ -59,7 +59,7 @@ func main() {
 	protected.GET("/tasks/:id", task.GetTaskHandler(log, taskClient))
 	protected.PUT("/tasks/:id", task.UpdateTaskHandler(log, taskClient))
 	protected.DELETE("/tasks/:id", task.DeleteTaskHandler(log, taskClient))
-	//protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(taskClient))
+	protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(log, taskClient))
 
 	err := r.Run(cfg.Addr)
 	if err != nil {
