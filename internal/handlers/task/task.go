@@ -25,16 +25,45 @@ func CreateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.Ha
 	return func(c *gin.Context) {
 		const op = "handlers.task.Create"
 		var req Task
+		uid, _ := c.Get("userID")
 		c.ShouldBind(&req)
 		log.Info("aa", req)
 		grpcReq := taskv1.CreateTaskRequest{
-			UserId:      req.UserId,
+			UserId:      uid.(uint64),
 			Title:       req.Title,
 			Description: req.Description,
 			Priority:    taskv1.TaskPriority(taskv1.TaskPriority_value[req.Priority]),
 			DueDate:     timestamppb.New(req.DueDate),
 		}
 		resp, err := client.CreateTask(c, &grpcReq)
+		if err != nil {
+			grpc.HandleGRPCError(c, err)
+			return
+		}
+		c.JSON(200, resp)
+	}
+}
+
+func UpdateTaskHandler(log *slog.Logger, client taskv1.TaskServiceClient) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		const op = "handlers.task.Update"
+		var req Task
+		uid, _ := c.Get("userID")
+		id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "invalid id"})
+			return
+		}
+		c.ShouldBind(&req)
+		grpcReq := taskv1.UpdateTaskRequest{
+			Id:          id,
+			UserId:      uid.(uint64),
+			Title:       req.Title,
+			Description: req.Description,
+			Priority:    taskv1.TaskPriority(taskv1.TaskPriority_value[req.Priority]),
+			DueDate:     timestamppb.New(req.DueDate),
+		}
+		resp, err := client.UpdateTask(c, &grpcReq)
 		if err != nil {
 			grpc.HandleGRPCError(c, err)
 			return

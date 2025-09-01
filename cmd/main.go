@@ -21,6 +21,13 @@ const (
 	envProd  = "prod"
 )
 
+//TODO:
+// Implement logger
+// Better grpc error handling
+// Add all the handlers
+// Write validate token function in sso
+// Refactor server initialization
+
 func main() {
 	cfg := config.MustLoad()
 
@@ -50,7 +57,7 @@ func main() {
 	protected.Use(middleware.AuthMiddleware(ssoClient))
 	protected.POST("/tasks", task.CreateTaskHandler(log, taskClient))
 	protected.GET("/tasks/:id", task.GetTaskHandler(log, taskClient))
-	//protected.PUT("/tasks/:id", task.UpdateTaskHandler(taskClient))
+	protected.PUT("/tasks/:id", task.UpdateTaskHandler(log, taskClient))
 	//protected.DELETE("/tasks/:id", task.DeleteTaskHandler(taskClient))
 	//protected.PATCH("/tasks/:id/status", task.UpdateStatusHandler(taskClient))
 
