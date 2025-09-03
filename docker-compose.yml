@@ -1,0 +1,13 @@
+services:
+  api-gateway:
+    build: .
+    ports:
+      - "44032:44032"
+    environment:
+      - CONFIG_PATH=/app/config/local.yaml
+    networks:
+      - proxynet
+
+networks:
+  proxynet:
+    name: custom_network

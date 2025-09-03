@@ -1,9 +1,9 @@
 env: "local"
-addr: "localhost:44032"
+addr: "0.0.0.0:44032"
 services:
   sso:
-    endpoint: "localhost:44043"
+    endpoint: "sso-app:44043"
     timeout: "5s"
   task:
-    endpoint: "localhost:44045"
+    endpoint: "task-app:44045"
     timeout: "5s"
