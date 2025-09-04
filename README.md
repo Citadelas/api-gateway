@@ -29,22 +29,15 @@ cd api-gateway
 2. **Создайте конфигурационный файл**
 Создайте файл `config/local.yaml`:
 ```yaml
-env: "local"
-server:
-  port: 8080
-  timeout: 30s
-
+env: "localv"
+addr: "0.0.0.0:44032"
 services:
   sso:
-    url: "localhost:44043"
-    timeout: 5s
+    endpoint: "sso-app:44043"
+    timeout: "5s"
   task:
-    url: "localhost:44044" 
-    timeout: 5s
-
-logging:
-  level: "debug"
-  format: "json"
+    endpoint: "task-app:44045"
+    timeout: "5s"
 ```
 
 3. **Запустите сервис**
@@ -53,8 +46,7 @@ logging:
 go run cmd/api-gateway/main.go -config=config/local.yaml
 
 # Или через Docker
-docker build -t citadelas/api-gateway .
-docker run -p 8080:8080 -v $(pwd)/config:/app/config citadelas/api-gateway
+docker compose up --build
 ```
 
 ## 📡 API Endpoints
@@ -64,12 +56,10 @@ docker run -p 8080:8080 -v $(pwd)/config:/app/config citadelas/api-gateway
 POST /auth/login
 POST /auth/register  
 POST /auth/refresh
-GET  /auth/me
 ```
 
 ### Управление задачами
 ```http
-GET    /tasks               # Получить все задачи пользователя
 POST   /tasks               # Создать новую задачу
 GET    /tasks/{id}          # Получить задачу по ID
 PUT    /tasks/{id}          # Обновить задачу
@@ -77,61 +67,10 @@ DELETE /tasks/{id}          # Удалить задачу
 PATCH  /tasks/{id}/status   # Изменить статус задачи
 ```
 
-### Системные endpoints
-```http
-GET /health    # Health check
-GET /ready     # Readiness probe
-GET /metrics   # Prometheus metrics
-```
-
-## 🔧 Конфигурация
-
-### Переменные окружения
-
-| Переменная | Описание | По умолчанию |
-|-----------|----------|--------------|
-| `CONFIG_PATH` | Путь к файлу конфигурации | `./config/local.yaml` |
-| `PORT` | Порт сервера | `8080` |
-| `SSO_SERVICE_URL` | URL SSO сервиса | `localhost:44043` |
-| `TASK_SERVICE_URL` | URL Task сервиса | `localhost:44044` |
-
-### Структура конфигурации
-
-```yaml
-env: "local|dev|prod"
-server:
-  port: 8080
-  timeout: "30s"
-  read_timeout: "10s"
-  write_timeout: "10s"
-
-services:
-  sso:
-    url: "sso-service:44043"
-    timeout: "5s"
-    max_retries: 3
-  task:
-    url: "task-service:44044"
-    timeout: "5s" 
-    max_retries: 3
-
-cors:
-  allowed_origins: ["*"]
-  allowed_methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
-  allowed_headers: ["*"]
-
-logging:
-  level: "info"
-  format: "json"
-```
-
 ## 🛡️ Middleware
 
 ### Authentication Middleware
 Проверяет JWT токены через SSO сервис для защищенных endpoints.
-
-### CORS Middleware  
-Настраивает Cross-Origin Resource Sharing для фронтенд приложений.
 
 ### Logging Middleware
 Логирует все входящие запросы с метриками производительности.
@@ -164,76 +103,6 @@ api-gateway/
 ├── Dockerfile
 └── README.md
 ```
-
-### Добавление нового endpoint
-
-1. Создайте handler в соответствующем пакете
-2. Добавьте маршрут в `internal/app/app.go`
-3. При необходимости добавьте middleware
-4. Обновите документацию API
-
-## 🐳 Docker
-
-### Dockerfile
-```dockerfile
-FROM golang:1.24-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY . .
-RUN go build -o api-gateway cmd/api-gateway/main.go
-
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
-WORKDIR /root/
-COPY --from=builder /app/api-gateway .
-COPY --from=builder /app/config ./config
-CMD ["./api-gateway"]
-```
-
-### Docker Compose
-```yaml
-version: '3.8'
-services:
-  api-gateway:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - CONFIG_PATH=/app/config/local.yaml
-      - SSO_SERVICE_URL=sso:44043
-      - TASK_SERVICE_URL=task:44044
-    depends_on:
-      - sso
-      - task
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-```
-
-## 📊 Мониторинг и логирование
-
-### Health Checks
-- `/health` - общее состояние сервиса
-- `/ready` - готовность к обслуживанию запросов
-
-### Metrics *(Планируется)*
-- HTTP request duration
-- Request count по endpoints
-- Error rate по статус кодам
-- gRPC клиентские метрики
-
-### Logging
-Структурированные логи в JSON формате включают:
-- Request ID для трейсинга
-- HTTP метод и путь
-- Время выполнения запроса
-- Статус код ответа
-- User ID (если аутентифицирован)
-
-## 🚧 Roadmap
 
 ### v1.1
 - [ ] Rate limiting middleware
