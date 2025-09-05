@@ -51,7 +51,6 @@ func CacheMiddleware(log *slog.Logger, client *redis.Client) gin.HandlerFunc {
 		ctx.Writer = blw
 
 		ctx.Next()
-		log.Info("KLSFMKLSDMFSMDFLSDFMLK", blw.Status(), blw.body, blw.body.Len())
 		if blw.Status() == 200 && blw.body.Len() > 0 {
 			log.Info("Saving to cache, key:", cacheKey, "body length:", blw.body.Len())
 			err := client.SetEx(context.Background(), cacheKey, blw.body.String(), time.Minute).Err()
