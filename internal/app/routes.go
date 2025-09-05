@@ -38,7 +38,7 @@ func (a *App) setupAuthRoutes(api *gin.RouterGroup) {
 func (a *App) setupProtectedRoutes(api *gin.RouterGroup) {
 	protected := api.Group("/")
 	protected.Use(middleware.AuthMiddleware(a.ssoClient))
-
+	protected.Use(middleware.CacheMiddleware(a.log, a.redis))
 	// Task routes
 	tasks := protected.Group("/tasks")
 	{

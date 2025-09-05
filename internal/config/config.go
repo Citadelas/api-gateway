@@ -11,6 +11,13 @@ type Config struct {
 	Addr     string   `yaml:"addr"`
 	Env      string   `yaml:"env" env-default:"local"`
 	Services Services `yaml:"services"`
+	Redis    Redis    `yaml:"redis"`
+}
+
+type Redis struct {
+	Url      string `yaml:"url"`
+	DB       int    `yaml:"db"`
+	Password string `yaml:"password"`
 }
 
 type Services struct {

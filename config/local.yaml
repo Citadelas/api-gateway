@@ -7,3 +7,7 @@ services:
   task:
     endpoint: "task-app:44045"
     timeout: "5s"
+redis:
+  url: "redis:6379"
+  db: 0
+  password: ""

@@ -6,6 +6,8 @@ import (
 	ssov1 "github.com/Citadelas/protos/golang/sso"
 	taskv1 "github.com/Citadelas/protos/golang/task"
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -28,20 +30,30 @@ type App struct {
 	//ssoConn    *grpc.ClientConn
 	//taskConn   *grpc.ClientConn
 	router *gin.Engine
+	redis  *redis.Client
+}
+
+func newRedisClient(conn, password string, db int) *redis.Client {
+	opt, err := redis.ParseURL("redis://" + conn + "/0")
+	if err != nil {
+		log.Fatalf("invalid Redis URL: %v", err)
+	}
+	return redis.NewClient(opt)
 }
 
 func NewApp() (*App, error) {
 	cfg := config.MustLoad()
 	log := setupLogger(cfg.Env)
-
+	redisClient := newRedisClient(cfg.Redis.Url, cfg.Redis.Password, cfg.Redis.DB)
 	log.Info("Starting app",
 		slog.String("env", cfg.Env),
 		slog.Any("cfg", cfg),
 	)
 
 	app := &App{
-		cfg: cfg,
-		log: log,
+		cfg:   cfg,
+		log:   log,
+		redis: redisClient,
 	}
 
 	if err := app.mustInitClients(); err != nil {
