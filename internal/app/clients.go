@@ -3,7 +3,9 @@ package app
 import (
 	ssov1 "github.com/Citadelas/protos/golang/sso"
 	taskv1 "github.com/Citadelas/protos/golang/task"
+	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/retry"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"time"
 )
@@ -23,12 +25,16 @@ func (a *App) mustInitClients() error {
 }
 
 func mustGenerateClient(endpoint string, timeout time.Duration) *grpc.ClientConn {
-	conn, err := grpc.NewClient(endpoint,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithConnectParams(grpc.ConnectParams{
-			MinConnectTimeout: timeout,
-		}),
-	)
+	var opts []grpc.DialOption
+	opts = append(opts, grpc.WithUnaryInterceptor(grpc_retry.UnaryClientInterceptor(
+		grpc_retry.WithCodes(codes.Unavailable, codes.ResourceExhausted),
+		grpc_retry.WithMax(5),
+		grpc_retry.WithBackoff(grpc_retry.BackoffLinear(time.Second)),
+	)))
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithConnectParams(grpc.ConnectParams{
+		MinConnectTimeout: timeout,
+	}))
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		panic(err)
 	}
