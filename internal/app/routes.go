@@ -21,6 +21,7 @@ func (a *App) setupRoutes() {
 	a.router.Use(gin.Logger())
 
 	a.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
+	a.router.Use(middleware.PrometheusMiddleware())
 
 	api := a.router.Group("/api/v1")
 
