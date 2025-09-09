@@ -1,18 +1,26 @@
 package app
 
 import (
+	prometheus2 "github.com/Citadelas/api-gateway/internal/app/prometheus"
 	"github.com/Citadelas/api-gateway/internal/handlers/sso"
 	"github.com/Citadelas/api-gateway/internal/handlers/task"
 	"github.com/Citadelas/api-gateway/internal/middleware"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func (a *App) setupRoutes() {
+
+	prometheus.MustRegister(prometheus2.RequestsTotal, prometheus2.RequestDuration)
+
 	a.router = gin.Default()
 
 	// Add middleware
 	a.router.Use(gin.Recovery())
 	a.router.Use(gin.Logger())
+
+	a.router.GET("/metrics", gin.WrapH(promhttp.Handler()))
 
 	api := a.router.Group("/api/v1")
 

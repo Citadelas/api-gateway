@@ -1,11 +1,14 @@
 package sso
 
 import (
+	"log/slog"
+	"time"
+
+	prometheus2 "github.com/Citadelas/api-gateway/internal/app/prometheus"
 	"github.com/Citadelas/api-gateway/internal/helpers/grpc"
 	"github.com/Citadelas/api-gateway/internal/lib/logger/sl"
 	ssov1 "github.com/Citadelas/protos/golang/sso"
 	"github.com/gin-gonic/gin"
-	"log/slog"
 )
 
 type Req struct {
@@ -17,6 +20,13 @@ func LoginHandler(log *slog.Logger, client ssov1.AuthClient) gin.HandlerFunc {
 	const op = "handlers.sso.Login"
 	log = log.With("op", op)
 	return func(c *gin.Context) {
+		start := time.Now()
+		defer func() {
+			method := c.Request.Method
+			elapsed := time.Since(start).Seconds()
+			prometheus2.RequestsTotal.WithLabelValues(method).Inc()
+			prometheus2.RequestDuration.WithLabelValues(method).Observe(elapsed)
+		}()
 		var req Req
 		if err := c.ShouldBind(&req); err != nil {
 			log.Error("Error json bind", sl.Err(err))
