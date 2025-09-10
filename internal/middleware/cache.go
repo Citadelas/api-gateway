@@ -3,19 +3,13 @@ package middleware
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
-	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"log/slog"
 	"strconv"
 	"time"
-)
 
-func hashString(s string) string {
-	h := sha256.Sum256([]byte(s))
-	return hex.EncodeToString(h[:])
-}
+	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
+)
 
 type bodyWriter struct {
 	gin.ResponseWriter
@@ -38,7 +32,7 @@ func CacheMiddleware(log *slog.Logger, client *redis.Client) gin.HandlerFunc {
 			ctx.JSON(401, "Unauthorized")
 			return
 		}
-		cacheKey := hashString(ctx.Request.URL.String() + strconv.Itoa(int(userID.(uint64))))
+		cacheKey := ctx.Request.URL.String() + ":" + strconv.Itoa(int(userID.(uint64)))
 		cached, err := client.Get(context.Background(), cacheKey).Result()
 		if err == nil {
 			ctx.Header("X-Cache-Status", "HIT")
