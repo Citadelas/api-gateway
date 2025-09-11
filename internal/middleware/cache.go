@@ -38,6 +38,7 @@ func CacheMiddleware(log *slog.Logger, client *redis.Client) gin.HandlerFunc {
 			ctx.Header("X-Cache-Status", "HIT")
 			ctx.Header("Content-Type", "application/json")
 			ctx.String(200, cached)
+			ctx.Abort()
 			return
 		}
 		ctx.Header("X-Cache-Status", "MISS")
